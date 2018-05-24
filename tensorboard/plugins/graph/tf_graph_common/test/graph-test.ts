@@ -79,6 +79,11 @@ describe('graph', () => {
               assert.equal(slimGraph.nodes['Q'].stats.getTotalMicros(), 6);
               done();
             });
+            const whitelist = ["X", "W"];
+            tf.graph.op.checkOpsForCompatibility(slimGraph, whitelist);
+            assert.isTrue(slimGraph.nodes['X'].compatible);
+            assert.isTrue(slimGraph.nodes['W'].compatible);
+            assert.isFalse(slimGraph.nodes['Q'].compatible);
           });
     });
   });
