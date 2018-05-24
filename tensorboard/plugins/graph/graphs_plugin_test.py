@@ -84,6 +84,7 @@ class GraphsPluginBaseTest(object):
     self.assertIsInstance(routes['/graph'], collections.Callable)
     self.assertIsInstance(routes['/run_metadata'], collections.Callable)
     self.assertIsInstance(routes['/info'], collections.Callable)
+    self.assertIsInstance(routes['/whitelist'], collections.Callable)
 
 
 class GraphsPluginV1Test(GraphsPluginBaseTest, tf.test.TestCase):
