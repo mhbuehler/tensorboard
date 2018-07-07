@@ -37,56 +37,36 @@ def run_all(logdir, verbose=False):
   k = tf.placeholder(tf.float32)
 
   # Make a normal distribution, with a shifting mean
-  mean_moving_normal = tf.random_normal(shape=[1000], mean=(5*k), stddev=1)
+  mean_moving_normal = tf.random_normal(shape=[10], mean=(5*k), stddev=1)
   # Record that distribution into a histogram summary
-  histogram_summary.op("normal/moving_mean",
-                       mean_moving_normal,
-                       description="A normal distribution whose mean changes "
-                                   "over time.")
+  tf.summary.histogram("normal/moving_mean", mean_moving_normal)
 
-  # Make a normal distribution with shrinking variance
-  shrinking_normal = tf.random_normal(shape=[1000], mean=0, stddev=1-(k))
-  # Record that distribution too
-  histogram_summary.op("normal/shrinking_variance", shrinking_normal,
-                       description="A normal distribution whose variance "
-                                   "shrinks over time.")
+  # # Add a gamma distribution
+  # gamma = tf.random_gamma(shape=[10], alpha=k)
+  # histogram_summary.op("gamma", gamma,
+  #                      description="A gamma distribution whose shape "
+  #                                  "parameter, α, changes over time.")
 
-  # Let's combine both of those distributions into one dataset
-  normal_combined = tf.concat([mean_moving_normal, shrinking_normal], 0)
-  # We add another histogram summary to record the combined distribution
-  histogram_summary.op("normal/bimodal", normal_combined,
-                       description="A combination of two normal distributions, "
-                                   "one with a moving mean and one with  "
-                                   "shrinking variance. The result is a "
-                                   "distribution that starts as unimodal and "
-                                   "becomes more and more bimodal over time.")
+  # # And a poisson distribution
+  # poisson = tf.random_poisson(shape=[10], lam=k)
+  # histogram_summary.op("poisson", poisson,
+  #                      description="A Poisson distribution, which only "
+  #                                  "takes on integer values.")
 
-  # Add a gamma distribution
-  gamma = tf.random_gamma(shape=[1000], alpha=k)
-  histogram_summary.op("gamma", gamma,
-                       description="A gamma distribution whose shape "
-                                   "parameter, α, changes over time.")
+  # # And a uniform distribution
+  # host_memory_uniform = tf.random_uniform(shape=[10], maxval=k*10)
+  # histogram_summary.op("host_memory_uniform", host_memory_uniform,
+  #                      description="A simple uniform distribution.")
 
-  # And a poisson distribution
-  poisson = tf.random_poisson(shape=[1000], lam=k)
-  histogram_summary.op("poisson", poisson,
-                       description="A Poisson distribution, which only "
-                                   "takes on integer values.")
-
-  # And a uniform distribution
-  uniform = tf.random_uniform(shape=[1000], maxval=k*10)
-  histogram_summary.op("uniform", uniform,
-                       description="A simple uniform distribution.")
+  # device_memory_uniform = tf.random_uniform(shape=[10], maxval=k*10)
+  # histogram_summary.op("device_memory_uniform", device_memory_uniform,
+  #                      description="Device_memory uniform distribution")
 
   # Finally, combine everything together!
-  all_distributions = [mean_moving_normal, shrinking_normal,
-                       gamma, poisson, uniform]
-  all_combined = tf.concat(all_distributions, 0)
-  histogram_summary.op("all_combined", all_combined,
-                       description="An amalgamation of five distributions: a "
-                                   "uniform distribution, a gamma "
-                                   "distribution, a Poisson distribution, and "
-                                   "two normal distributions.")
+  all_distributions = [mean_moving_normal]
+  total_memory_info = tf.concat(all_distributions, 0)
+  histogram_summary.op("total_memory_info", total_memory_info,
+                       description="Distributions of all combined, host_memory, device_memory etc.")
 
   summaries = tf.summary.merge_all()
 
@@ -95,11 +75,12 @@ def run_all(logdir, verbose=False):
   writer = tf.summary.FileWriter(logdir)
 
   # Setup a loop and write the summaries to disk
-  N = 400
+  N = 10
   for step in xrange(N):
-    k_val = step/float(N)
-    summ = sess.run(summaries, feed_dict={k: k_val})
-    writer.add_summary(summ, global_step=step)
+  # k_val = N
+  # print(k_val)
+    summ = sess.run(summaries, feed_dict={k: step})
+    writer.add_summary(summ)
 
 
 def main(unused_argv):
