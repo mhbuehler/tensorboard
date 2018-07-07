@@ -147,6 +147,17 @@ limitations under the License.
           value: false,
           reflectToAttribute: true,  // for CSS
         },
+
+        // requestManager: {
+        //   type: Object,
+        //   value: () => new tf_backend.requestManager(),
+        // },
+
+        _canceller: {
+          type: Object,
+          value: () => new tf_backend.Canceller(),
+        },
+        // memory_info: Array,
       },
 
       observers: [

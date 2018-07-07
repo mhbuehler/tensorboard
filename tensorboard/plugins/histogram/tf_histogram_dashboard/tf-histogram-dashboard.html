@@ -66,7 +66,16 @@ limitations under the License.
           <tf-runs-selector selected-runs="{{_selectedRuns}}">
           </tf-runs-selector>
         </div>
+        <div class="sidebar-section">
+            <tf-option-selector
+              id="deviceTypeSelector"
+              name="Device type"
+              selected-id="{{_deviceType}}"
+            >
+              <paper-button id="cpu">CPU</paper-button>
+            </tf-option-selector>
        </div>
+      </div>
       </div>
       <div class="center">
         <template is="dom-if" if="[[_dataNotFound]]">
@@ -89,6 +98,40 @@ limitations under the License.
           </div>
         </template>
         <template is="dom-if" if="[[!_dataNotFound]]">
+          <div class="container horizontal rounded">
+            <h2>Memory Usage Per Model Run</h2>
+            <h3><i>Total Available Memory: {{_memoryInfoProvider()}}</i></h3>
+            <span>Run 1:</span>
+            <span> 
+                <div class="progress-bar horizontal">
+                    <div class="progress-track">
+                      <div class="progress-fill">
+                        <span class="bar">34%</span>
+                      </div>
+                    </div>
+                  </div>
+            </span>
+
+            <div>Run 2:</div>
+            <div class="progress-bar horizontal">
+              <div class="progress-track">
+                <div class="progress-fill">
+                  <span class="bar">75%</span>
+                </div>
+              </div>
+            </div>
+          
+            <div>Run 3:</div>
+            <div class="progress-bar horizontal">
+              <div class="progress-track">
+                <div class="progress-fill">
+                  <span class="bar">60%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <!-- <template is="dom-if" if="[[!_dataNotFound]]">
           <tf-tag-filterer tag-filter="{{_tagFilter}}"></tf-tag-filterer>
           <template is="dom-repeat" items="[[_categories]]" as="category">
             <tf-category-pane
@@ -114,7 +157,7 @@ limitations under the License.
               </tf-paginated-view2>
             </tf-category-pane>
           </template>
-        </template>
+        </template> -->
       </div>
     </tf-dashboard-layout>
 
@@ -123,6 +166,63 @@ limitations under the License.
       .no-data-warning {
         max-width: 540px;
         margin: 80px auto 0 auto;
+      }
+      *, *:before, *:after {
+        -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+      }
+
+      body {
+        background: #999;
+      }
+
+      h2 {
+        margin: 0 0 20px 0;
+        padding: 0 0 5px 0;
+        border-bottom: 1px solid #999;
+        font-family: sans-serif;
+        font-weight: normal;
+        color: #333;
+      }
+
+      .container {
+        width: 500px;
+        margin: 20px;
+        background: #fff;
+        padding: 20px;
+        overflow: hidden;
+        float: left;
+      }
+
+      .horizontal .progress-bar {
+        float: left;
+        height: 45px;
+        width: 100%;
+        padding: 12px 0;
+      }
+
+      .horizontal .progress-track {
+        position: relative;
+        width: 100%;
+        height: 20px;
+        background: #ebebeb;
+      }
+
+      .horizontal .progress-fill {
+        position: relative;
+        background: #666;
+        height: 20px;
+        width: 50%;
+        color: #fff;
+        text-align: center;
+        font-family: "Lato","Verdana",sans-serif;
+        font-size: 12px;
+        line-height: 20px;
+      }
+
+      .rounded .progress-track,
+      .rounded .progress-fill {
+        border-radius: 3px;
+        box-shadow: inset 0 0 5px rgba(0,0,0,.2);
       }
     </style>
   </template>
@@ -140,6 +240,10 @@ limitations under the License.
         _timeProperty: {
           type: String,
           value: "step",
+        },
+        _deviceType: {
+          type: String,
+          value: "cpu",
         },
 
         _selectedRuns: Array,
@@ -192,7 +296,32 @@ limitations under the License.
         this._fetchTags().then(() => {
           this._reloadHistograms();
         });
+        this._widthModifier();
       },
+
+      _memoryInfoProvider() {
+        const total_memory_in_bytes = 67182292992;
+        const total_memory_in_mb = Math.round((total_memory_in_bytes/1000000)*100)/100;
+        const total_memory_in_gb = Math.round((total_memory_in_mb/1000)*100)/100;
+        const total_memory_info = total_memory_in_mb + ' MB' + ' (' + total_memory_in_gb + ' GB)';
+        return total_memory_info;
+      },
+
+      // _memoryUsageInfoProvider() {
+      //   const total_memory = parseInt(this._memoryInfoProvider);
+      //   const memory_used = 11468831231;
+      //   const memory_used_percent = (Math.round((memory_used/total_memory)*100) / 100) * 100;
+      //   console.log(memory_used_percent);
+      //   return memory_used_percent;
+      // },
+
+      _widthModifier() {
+        var ele = document.getElementsByClassName('bar')
+        for(var i=0; i < ele.length; i++) {
+          ele[i].parentElement.style.width = ele[i].innerHTML;
+        }
+      },
+
       _fetchTags() {
         const url = tf_backend.getRouter().pluginRoute('histograms', '/tags');
         return this._requestManager.request(url).then(runToTagInfo => {
