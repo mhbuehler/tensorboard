@@ -25,6 +25,7 @@ from __future__ import print_function
 import collections
 import random
 
+import json
 import numpy as np
 import six
 from werkzeug import wrappers
@@ -65,6 +66,7 @@ class HistogramsPlugin(base_plugin.TBPlugin):
     return {
         '/histograms': self.histograms_route,
         '/tags': self.tags_route,
+        '/memory': self.memory_route,
     }
 
   def is_active(self):
@@ -238,3 +240,15 @@ class HistogramsPlugin(base_plugin.TBPlugin):
       (body, mime_type) = (str(e), 'text/plain')
       code = 400
     return http_util.Respond(request, body, mime_type, code=code)
+
+  @wrappers.Request.application
+  def memory_route(self, request):
+    memory_info = {"total_mem": 12312432, "mem_used": 214134}
+    memory_info_path = '/tmp/run1'
+    # print('????', memory_info_path)
+    # file_content = 
+    # print('>>>>', file_content)
+    # if 'total_memory' in file_content: 
+    #   memory_info = file_content['total_memory']
+    #   print('<<<<', memory_info)
+    return http_util.Respond(request, memory_info, 'application/json')

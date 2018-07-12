@@ -101,63 +101,54 @@ limitations under the License.
           <div class="container horizontal rounded">
             <h2>Memory Usage Per Model Run</h2>
             <h3><i>Total Available Memory: {{_memoryInfoProvider()}}</i></h3>
-            <span>Run 1:</span>
+            <span>Run 1 - Memory Used: {{_memoryInformation.run_1}} {{_memoryInformation.run_1_percent}}</span>
             <span> 
                 <div class="progress-bar horizontal">
                     <div class="progress-track">
                       <div class="progress-fill">
-                        <span class="bar">34%</span>
+                        <span class="bar">0.0000016%</span>
                       </div>
                     </div>
                   </div>
             </span>
 
-            <div>Run 2:</div>
+            <div>Run 2 - Memory Used: {{_memoryInformation.run_2}} {{_memoryInformation.run_2_percent}}</div>
             <div class="progress-bar horizontal">
               <div class="progress-track">
                 <div class="progress-fill">
-                  <span class="bar">75%</span>
+                  <span class="bar">0.0000007%</span>
+                </div>
+              </div>
+            </div>
+
+            <div>Run 3 - Memory Used: 6046.406 MB (9%)</div>
+            <div class="progress-bar horizontal">
+              <div class="progress-track">
+                <div class="progress-fill">
+                  <span class="bar">9%</span>
                 </div>
               </div>
             </div>
           
-            <div>Run 3:</div>
+            <div>Run 4 - Memory Used: 31575.67 MB (47%)</div>
             <div class="progress-bar horizontal">
               <div class="progress-track">
                 <div class="progress-fill">
-                  <span class="bar">60%</span>
+                  <span class="bar">47%</span>
+                </div>
+              </div>
+            </div>
+
+            <div>Run 5 - Memory Used: 65838.64 MB (98%)</div>
+            <div class="progress-bar horizontal">
+              <div class="progress-track">
+                <div class="progress-fill">
+                  <span class="bar">98%</span>
                 </div>
               </div>
             </div>
           </div>
         </template>
-        <!-- <template is="dom-if" if="[[!_dataNotFound]]">
-          <tf-tag-filterer tag-filter="{{_tagFilter}}"></tf-tag-filterer>
-          <template is="dom-repeat" items="[[_categories]]" as="category">
-            <tf-category-pane
-              category="[[category]]"
-              opened="[[_shouldOpen(index)]]"
-              restamp="[[_restamp]]"
-            >
-              <tf-paginated-view2
-                items="[[category.items]]"
-                get-item-key="[[_getItemKey]]"
-                pages="{{category._pages}}"
-              >
-                <template>
-                  <tf-histogram-loader
-                    run="[[item.run]]"
-                    tag="[[item.tag]]"
-                    tag-metadata="[[_tagMetadata(_runToTagInfo, item.run, item.tag)]]"
-                    time-property="[[_timeProperty]]"
-                    histogram-mode="[[_histogramMode]]"
-                    request-manager="[[_requestManager]]"
-                  ></tf-histogram-loader>
-                </template>
-              </tf-paginated-view2>
-            </tf-category-pane>
-          </template>
-        </template> -->
       </div>
     </tf-dashboard-layout>
 
@@ -212,7 +203,7 @@ limitations under the License.
         background: #666;
         height: 20px;
         width: 50%;
-        color: #fff;
+        color: #000;
         text-align: center;
         font-family: "Lato","Verdana",sans-serif;
         font-size: 12px;
@@ -256,6 +247,16 @@ limitations under the License.
           value: false,
         },
 
+        _memoryInformation: {
+          type: Object,
+          value: {
+            run_1: "0.11468 MB",
+            run_1_percent: "(0.0000016%)",
+            run_2: "0.053248 MB",
+            run_2_percent: "(0.0000007%)",
+          }
+        },
+
         // Categories must only be computed after _dataNotFound is found to be
         // true and then polymer DOM templating responds to that finding. We
         // thus use this property to guard when categories are computed.
@@ -293,10 +294,11 @@ limitations under the License.
         this.reload();
       },
       reload() {
+        this._widthModifier();
         this._fetchTags().then(() => {
           this._reloadHistograms();
         });
-        this._widthModifier();
+        this._fetchMemory();
       },
 
       _memoryInfoProvider() {
@@ -318,7 +320,13 @@ limitations under the License.
       _widthModifier() {
         var ele = document.getElementsByClassName('bar')
         for(var i=0; i < ele.length; i++) {
-          ele[i].parentElement.style.width = ele[i].innerHTML;
+          const ele_info = parseInt(ele[i].parentElement.style.width);
+          if(ele_info > 5) { 
+            ele[i].parentElement.style.width = ele[i].innerHTML; 
+          }
+          else {
+            ele[i].parentElement.style.width = ele[i].innerHTML;
+          }
         }
       },
 
@@ -340,6 +348,15 @@ limitations under the License.
           });
         });
       },
+
+      _fetchMemory() {
+        const url = tf_backend.getRouter().pluginRoute('histograms', '/memory');
+        this._requestManager.request(url).then(data => {
+          console.log('>>>>',data);
+        });
+        // const total_memory = _memoryInfoProvider();
+      },
+
       _reloadHistograms() {
         this.querySelectorAll('tf-histogram-loader').forEach(histogram => {
           histogram.reload();
