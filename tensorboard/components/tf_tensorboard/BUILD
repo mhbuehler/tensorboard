@@ -65,6 +65,7 @@ tf_web_library(
         "//tensorboard/plugins/projector/vz_projector",
         "//tensorboard/plugins/scalar/tf_scalar_dashboard",
         "//tensorboard/plugins/text/tf_text_dashboard",
+        "//tensorboard/plugins/custom/tf_custom_dashboard",
     ],
 )
 

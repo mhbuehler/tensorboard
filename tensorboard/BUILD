@@ -79,6 +79,7 @@ py_library(
         "//tensorboard/plugins/projector:projector_plugin",
         "//tensorboard/plugins/scalar:scalars_plugin",
         "//tensorboard/plugins/text:text_plugin",
+        "//tensorboard/plugins/custom:custom_plugin",
     ],
 )
 
@@ -315,6 +316,7 @@ py_library(
         "//tensorboard/plugins/pr_curve:summary",
         "//tensorboard/plugins/scalar:summary",
         "//tensorboard/plugins/text:summary",
+        "//tensorboard/plugins/custom:summary",
     ],
 )
 

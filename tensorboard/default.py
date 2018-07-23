@@ -46,6 +46,7 @@ from tensorboard.plugins.profile import profile_plugin
 from tensorboard.plugins.projector import projector_plugin
 from tensorboard.plugins.scalar import scalars_plugin
 from tensorboard.plugins.text import text_plugin
+from tensorboard.plugins.custom import custom_plugin
 
 
 def get_plugins():
@@ -70,6 +71,7 @@ def get_plugins():
       projector_plugin.ProjectorPlugin,
       text_plugin.TextPlugin,
       profile_plugin.ProfilePlugin,
+      custom_plugin.CustomPlugin,
   ]
   # The debugger plugin is only activated if its flag is set.
   debugger = debugger_plugin_loader.get_debugger_plugin()

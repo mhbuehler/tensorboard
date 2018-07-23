@@ -37,6 +37,7 @@ STANDARD_PLUGINS = frozenset([
     'pr_curve',
     'scalar',
     'text',
+    'custom',
 ])
 
 
