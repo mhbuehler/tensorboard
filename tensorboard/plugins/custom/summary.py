@@ -63,10 +63,14 @@ def op(name,
     display_name = name
   summary_metadata = metadata.create_summary_metadata(
       display_name=display_name, description=description)
+
+  # Customize greeting messages
+  message = tf.string_join(['Hello, ', data, '!'])
+
   with tf.name_scope(name):
     with tf.control_dependencies([tf.assert_type(data, tf.string)]):
       return tf.summary.tensor_summary(name='custom_summary',
-                                       tensor=data,
+                                       tensor=message,
                                        collections=collections,
                                        summary_metadata=summary_metadata)
 
@@ -97,6 +101,11 @@ def pb(name, data, display_name=None, description=None):
 
   if display_name is None:
     display_name = name
+
+  # Customize greeting messages
+  message = 'Hello, %s!' % data
+  
+  tensor = tf.make_tensor_proto(message, dtype=tf.string)
   summary_metadata = metadata.create_summary_metadata(
       display_name=display_name, description=description)
   summary = tf.Summary()

@@ -1,13 +1,10 @@
 <!--
 @license
-Copyright 2017 The TensorFlow Authors. All Rights Reserved.
-
+Copyright 2016 The TensorFlow Authors. All Rights Reserved.
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
-
     http://www.apache.org/licenses/LICENSE-2.0
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +18,8 @@ limitations under the License.
 <link rel="import" href="../tf-backend/tf-backend.html">
 <link rel="import" href="../tf-categorization-utils/tf-categorization-utils.html">
 <link rel="import" href="../tf-categorization-utils/tf-category-pane.html">
-<link rel="import" href="../tf-categorization-utils/tf-tag-filterer.html">
 <link rel="import" href="../tf-dashboard-common/dashboard-style.html">
 <link rel="import" href="../tf-dashboard-common/tf-dashboard-layout.html">
-<link rel="import" href="../tf-paginated-view/tf-paginated-view.html">
 <link rel="import" href="../tf-runs-selector/tf-runs-selector.html">
 <link rel="import" href="../tf-tensorboard/registry.html">
 <link rel="import" href="tf-custom-loader.html">
@@ -37,6 +32,7 @@ limitations under the License.
           <tf-runs-selector selected-runs="{{_selectedRuns}}">
           </tf-runs-selector>
         </div>
+       </div>
       </div>
       <div class="center">
         <template is="dom-if" if="[[_dataNotFound]]">
@@ -59,9 +55,16 @@ limitations under the License.
           </div>
         </template>
         <template is="dom-if" if="[[!_dataNotFound]]">
-          <tf-tag-filterer tag-filter="{{_tagFilter}}"></tf-tag-filterer>
+          <paper-input
+            no-label-float
+            label="Filter tags (regular expressions supported)"
+            value="{{_tagFilter}}"
+            class="search-input"
+          >
+            <iron-icon prefix icon="search"></iron-icon>
+          </paper-input>
           <template is="dom-repeat" items="[[_categories]]" as="category">
-            <tf-category-pane category="[[category]]" opened="[[_shouldOpen(index)]]">
+            <tf-category-pane category="[[category]]">
               <tf-paginated-view
                 items="[[category.items]]"
                 pages="{{category._pages}}"
@@ -71,20 +74,21 @@ limitations under the License.
                     <div class="layout horizontal wrap">
                       <template is="dom-repeat" items="[[page.items]]">
                         <tf-custom-loader
-                          tag="[[item.tag]]"
                           run="[[item.run]]"
+                          tag="[[item.tag]]"
                           request-manager="[[_requestManager]]"
-                        ></tf-custom-loader>
+                          ></tf-custom-loader>
                       </template>
                     </div>
                   </template>
                 </template>
               </tf-paginated-view>
-            </tf-collapsable-pane>
+            </tf-category-pane>
           </template>
         </template>
       </div>
     </tf-dashboard-layout>
+
     <style include="dashboard-style"></style>
     <style>
       .no-data-warning {
@@ -93,7 +97,9 @@ limitations under the License.
       }
     </style>
   </template>
+
   <script>
+    "use strict";
 
     Polymer({
       is: "tf-custom-dashboard",
@@ -101,17 +107,15 @@ limitations under the License.
         _selectedRuns: Array,
         _runToTag: Object,  // map<run: string, tags: string[]>
         _dataNotFound: Boolean,
-        _tagFilter: String,
-        // Categories must only be computed after _dataNotFound is found to be
-        // true and then polymer DOM templating responds to that finding. We
-        // thus use this property to guard when categories are computed.
-        _categoriesDomReady: Boolean,
+        _tagFilter: {
+          type: String,  // upward bound from paper-input
+          value: '.*',
+        },
         _categories: {
           type: Array,
           computed:
-            '_makeCategories(_runToTag, _selectedRuns, _tagFilter, _categoriesDomReady)',
+            '_makeCategories(_runToTag, _selectedRuns, _tagFilter)',
         },
-
         _requestManager: {
           type: Object,
           value: () => new tf_backend.RequestManager(),
@@ -125,9 +129,6 @@ limitations under the License.
           this._reloadContent();
         });
       },
-      _shouldOpen(index) {
-        return index <= 2;
-      },
       _fetchTags() {
         const url = tf_backend.getRouter().pluginRoute('custom', '/tags');
         return this._requestManager.request(url).then(runToTag => {
@@ -138,18 +139,14 @@ limitations under the License.
           const tags = tf_backend.getTags(runToTag);
           this.set('_dataNotFound', tags.length === 0);
           this.set('_runToTag', runToTag);
-          this.async(() => {
-            // See the comment above `_categoriesDomReady`.
-            this.set('_categoriesDomReady', true);
-          });
         });
       },
       _reloadContent() {
-        this.querySelectorAll('tf-custom-loader').forEach(contentLoader => {
-          contentLoader.reload();
+        this.querySelectorAll('tf-custom-loader').forEach(g => {
+          g.reload();
         });
       },
-      _makeCategories(runToTag, selectedRuns, tagFilter, categoriesDomReady) {
+      _makeCategories(runToTag, selectedRuns, tagFilter) {
         return tf_categorization_utils.categorizeRunTagCombinations(runToTag, selectedRuns, tagFilter);
       },
     });

@@ -15,134 +15,93 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-<link rel="import" href="../paper-material/paper-material.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../tf-backend/tf-backend.html">
 <link rel="import" href="../tf-card-heading/tf-card-heading.html">
 <link rel="import" href="../tf-color-scale/tf-color-scale.html">
-<link rel="import" href="../tf-dashboard-common/scrollbar-style.html">
-<link rel="import" href="../tf-markdown-view/tf-markdown-view.html">
-<link rel="import" href="../tf-imports/d3.html">
+<link rel="import" href="../tf-imports/lodash.html">
 
 <dom-module id="tf-custom-loader">
   <template>
-    <tf-card-heading run="[[run]]" tag="[[tag]]" color="[[_runColor]]">
+    <tf-card-heading title="[[tag]]" color="[[_runColor]]">
+      [[run]]
     </tf-card-heading>
-    <paper-material
-      elevation="1"
-      id="steps-container"
-      class="container scrollbar"
-      style="border-color: [[_runColor]]"
-    >
-      <template is="dom-repeat" items="[[_texts]]">
-        <paper-material elevation="1" class="step-container">
-          step <span class="step-value">[[_formatStep(item.step)]]</span>
-        </paper-material>
-        <paper-material elevation="1" class="text">
-          <tf-markdown-view html="[[item.text]]"></tf-markdown-view>
-        </paper-material>
-      </template>
-    </paper-material>
-    <style include="scrollbar-style"></style>
+    <template is="dom-repeat" items="[[greetings]]">
+      <div>[[item.text]]</div>
+    </template>
     <style>
       :host {
         display: flex;
         flex-direction: column;
-        width: 100%;
-        height: auto;
+        width: 330px;
+        height: 235px;
         margin-right: 10px;
         margin-bottom: 15px;
       }
-      #steps-container {
-        border-radius: 3px;
-        border: 2px solid  /* color computed and set as inline style */;
-        display: block;
-        max-height: 500px;
-        overflow: auto;
-        padding: 10px;
-      }
-      .text {
-        background-color: white;
-        border-radius: 0 3px 3px 3px;
-        padding: 5px;
-        word-break: break-word;
-      }
-      .step-container {
-        background-color: var(--tb-ui-light-accent);
-        border-bottom: none;
-        border-radius: 3px 3px 0 0;
-        border: 1px solid #ccc;
-        display: inline-block;
-        font-size: 12px;
-        font-style: italic;
-        margin-left: -1px;  /* to correct for border */
-        padding: 3px;
-      }
-      .step-container:not(:first-child) {
-        margin-top: 15px;
+      :host[_expanded] {
+        width: 700px;
+        height: 500px;
       }
 
-      tf-card-heading {
-        margin-bottom: 10px;
-      }
     </style>
   </template>
   <script>
+    "use strict";
 
     Polymer({
       is: "tf-custom-loader",
       properties: {
         run: String,
         tag: String,
+
+        /** @type {Function} */
+        _colorScaleFunction: {
+          type: Object,  // function: string => string
+          value: () => tf_color_scale.runsColorScale,
+        },
         _runColor: {
           type: String,
-          computed: '_computeRunColor(run)',
+          computed: "_computeRunColor(run)",
         },
-
-        _texts: {
-          type: Array,
-          value: [],
-        },
-
         requestManager: Object,
         _canceller: {
           type: Object,
           value: () => new tf_backend.Canceller(),
         },
       },
+
+      observers: ["_fetchNewData(run, tag)"],
+
       _computeRunColor(run) {
-        return tf_color_scale.runsColorScale(run);
+        return this._colorScaleFunction(run);
       },
       attached() {
+        // Defer reloading until after we're attached, because that ensures that
+        // the requestManager has been set from above. (Polymer is tricky
+        // sometimes)
         this._attached = true;
         this.reload();
       },
       reload() {
+        this._fetchNewData(this.run, this.tag);
+      },
+      _fetchNewData(run, tag) {
         if (!this._attached) {
           return;
         }
         this._canceller.cancelAll();
-        const router = tf_backend.getRouter();
-        const url = tf_backend.addParams(router.pluginRoute("custom", "/custom"), {
-          tag: this.tag,
-          run: this.run,
-        });
-        const updateTexts = this._canceller.cancellable(result => {
+        const url = tf_backend.addParams(
+          tf_backend.getRouter().pluginRoute('custom', '/custom'), {tag, run});
+        const updateData = this._canceller.cancellable(result => {
           if (result.cancelled) {
             return;
           }
-          const data = result.value.map(datum => ({
-            wall_time: new Date(datum.wall_time * 1000),
-            step: datum.step,
-            text: datum.text,
-          }));
-          this.set("_texts", data.slice());
+          const backendData = result.value;
+          this.greetings = backendData;
         });
-        this.requestManager.request(url).then(updateTexts);
+        this.requestManager.request(url).then(updateData);
       },
-      _formatStep(n) {
-        return d3.format(",")(n);
-      }
     });
   </script>
 </dom-module>
