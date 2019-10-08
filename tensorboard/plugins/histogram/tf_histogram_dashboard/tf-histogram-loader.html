@@ -147,6 +147,17 @@ limitations under the License.
           value: false,
           reflectToAttribute: true,  // for CSS
         },
+
+        // requestManager: {
+        //   type: Object,
+        //   value: () => new tf_backend.requestManager(),
+        // },
+
+        _canceller: {
+          type: Object,
+          value: () => new tf_backend.Canceller(),
+        },
+        // memory_info: Array,
       },
 
       observers: [
@@ -163,6 +174,45 @@ limitations under the License.
         return this._colorScaleFunction(run);
       },
 
+      // var memory_info_url = tf_backend.addParams(tf.backend.getRouter().pluginRoute('histograms', '/memory'));
+      // this.requestManager.request(memory_info_url)
+      // .then(function(memory_info)) {
+      //   this.memory_info = memory_info;
+      // }
+
+      // memory_info() {
+      //   const memory_info_url = tf_backend.addParams(router.pluginRoute('histograms', '/memory_info'))
+      //   this.requestManager.request(memory_info_url)
+      //   .then(function(memory_info) {
+      //     this.memory_info = memory_info;
+      //     return tf.histogram.parser.
+      //   })
+      // },
+
+      /*attached() {
+        this._attached = true;
+        this.reload();
+      },
+      reload() {
+        if (!this._attached) {
+          return;
+        }
+        this._canceller.cancelAll();
+        const router = tf_backend.getRouter();
+        const url = tf_backend.addParams(router.pluginRoute("histograms", "/histograms"), {
+          tag: this.tag,
+          run: this.run,
+        });
+        const updateData = this._canceller.cancellable(result => {
+          if (result.cancelled) {
+            return;
+          }
+          const backendData = result.value;
+          const d3Data = tf_histogram_dashboard.backendToVz(backendData);
+          this.$$('vz-histogram-timeseries').setSeriesData(this.run, d3Data);
+        });
+        this.requestManager.request(url).then(updateData);
+      },*/
       redraw() {
         this.$.chart.redraw();
       },
