@@ -4,8 +4,8 @@ Follow these steps to build the demo plugins for NNP compatibility and memory us
 
 #### Clone this branch and navigate to the project directory
 ```
-git clone https://github.com/mhbuehler/tensorboard.git tensorboard_mhb
-cd tensorboard_mhb
+git clone https://github.com/mhbuehler/tensorboard.git --branch melanie/nnp_plugins_1.14
+cd tensorboard
 ```
 
 #### Build a Docker container for Bazel 0.24.1 
@@ -18,12 +18,12 @@ docker build \
     --build-arg https_proxy=${https_proxy} .
 ```
 
-#### Run a container with mounted volumes for the project and the sample data
+#### Run a container with mounted volumes for the project at `/tensorboard` and the sample data at `/tmp`
 ```
 docker run \
     -it \
     -v $PWD:/tensorboard \
-    -v $PWD/tensorboard/plugins/sample_date:/tmp \
+    -v $PWD/tensorboard/plugins/sample_data:/tmp \
     -p 6006:6006 \
     --name nnp_plugins \
     bazel:0.24.1
@@ -36,9 +36,10 @@ bazel run tensorboard/plugins/histogram:histograms_demo
 bazel run tensorboard -- --logdir=/tmp
 ```
 
-#### In a local browser, go to `http://localhost:6006/`
-You will see the "Graphs" view and compatibility checker first. Click the graph nodes to see more information.
+#### Go to `http://localhost:6006/` in your browser
+You will see the "Graphs" view and compatibility checker first. 
+Click the "NNP Compatibility" radio button and then the graph nodes to see more information.
 ![Compatibility Checker](compatibility-checker.png)
 
-Click the "Histogram" tab to see the memory usage plugin.
+Click the "Histograms" tab to see the memory usage plugin.
 ![Memory Usage](memory-usage.png)
