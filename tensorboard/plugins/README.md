@@ -43,3 +43,10 @@ Click the "NNP Compatibility" radio button and then the graph nodes to see more 
 
 Click the "Histograms" tab to see the memory usage plugin.
 ![Memory Usage](memory-usage.png)
+
+#### Build a wheel file to test the plugins in a container with nprof
+From inside the `/tensorboard` directory:
+```
+bazel run //tensorboard/pip_package:build_pip_package
+```
+The wheel file at `/tmp/tensorboard/dist/tensorboard-1.14.0-py3-none-any.whl` will be available outside the container in the `sample_data` directory, since it was mounted to `/tmp`.
